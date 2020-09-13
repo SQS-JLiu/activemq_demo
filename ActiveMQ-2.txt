@@ -1,0 +1,6 @@
+ActiveMQ:
+
+Broker: 相当于一个ActiveMQ服务器实例
+        简单理解就是实现了用代码形式启动ActiveMQ将MQ嵌入到Java代码中,
+        以便随时用随时启动, 在用的时候再去启动这样能节省资源, 也保证了可靠性
+嵌入式启动ActiveMQ
