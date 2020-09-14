@@ -1,0 +1,31 @@
+多节点集群 zookeeper+Replicated LevelDB Store主从复制
+LevelDB持久化引擎,采用新的索引
+原理说明：
+使用zookeeper注册所有ActiveMQ Broker但只有其中一个Broker可以提供服务，它将
+被视为Master，其他的Broker处于待机状态，被视为Slave
+推荐运行至少3个replica nodes以防止一个node失败后服务中断.
+单机部署集群示例:
+主机       Zookeeper集群端口  AMQ集群bind端口            AMQ消息tcp端口   管理控制台端口   AMQ节点安装目录
+127.0.0.1     2191       bind="tcp://0.0.0.0:63631"     61616     8161(jetty.xml配置) /mq_cluster/mq_node01
+127.0.0.1     2192       bind="tcp://0.0.0.0:63632"     61617          8162          /mq_cluster/mq_node02
+127.0.0.1     2193       bind="tcp://0.0.0.0:63633"     61618          8163          /mq_cluster/mq_node03
+3个BrokerName要全部一直(activemq.xml)
+3个Broker的kahadb持久化配置要改成是3个不同的可复制LevelDB配置(bind端口)
+
+1.引入消息队列之后如何保证高可用性:
+   zookeeper + replica levelDB
+2.异步发送(默认)
+   慢消费适用异步发送,避免队列积压,提高发送性能, 但可能会丢失数据
+
+*同步发送等到send不阻塞了就表示一定发送成功了,
+*异步发送需要收到回执并由客户端再一次判断是否发送成功.
+
+默认不开启延迟投递, 定时投递. 需要手动开启
+在activemq.xml中开启schedulerSupport,
+在代码中设置message的延迟时间,重复投递的时间,投递多少次
+
+重发策略：
+一个消息被重复发送超过最大重复次数(默认6次)时，会被标识
+为有毒消息，这个时候Broker会把该消息放到死信队列
+(可以为每一个队列设置一个死信队列)
+

@@ -1,6 +1,28 @@
 ActiveMQ:
-
 Broker: 相当于一个ActiveMQ服务器实例
         简单理解就是实现了用代码形式启动ActiveMQ将MQ嵌入到Java代码中,
         以便随时用随时启动, 在用的时候再去启动这样能节省资源, 也保证了可靠性
 嵌入式启动ActiveMQ
+
+1.默认的端口61616如何改？(tcp://localhost:61616)
+在activemq.xml中可配置, 默认配置是openwire序列化协议,tcp端口61616(BIO+TCP)
+nio://localhost:61616 (NIO+TCP)
+关键字AUTO关键字,支持多协议 auto+nio  例如：tcp://localhost:61618
+                                       nio://localhost:61618 等都支持
+一般只用到tcp和nio
+<transportConnectors>
+        <!-- DOS protection, limit concurrent connections to 1000 and frame size to 100MB -->
+        <transportConnector name="nio" uri="nio://0.0.0.0:61616?maximumConnections=1000&amp;wireFormat.maxFrameSize=104857600"/>
+        <transportConnector name="auto+nio" uri="auto+nio://0.0.0.0:61618?maximumConnections=1000&amp;wireFormat.maxFrameSize=104857600"/>
+        //<transportConnector name="openwire" uri="tcp://0.0.0.0:61616?maximumConnections=1000&amp;wireFormat.maxFrameSize=104857600"/>
+        <transportConnector name="amqp" uri="amqp://0.0.0.0:5672?maximumConnections=1000&amp;wireFormat.maxFrameSize=104857600"/>
+        <transportConnector name="stomp" uri="stomp://0.0.0.0:61613?maximumConnections=1000&amp;wireFormat.maxFrameSize=104857600"/>
+        <transportConnector name="mqtt" uri="mqtt://0.0.0.0:1883?maximumConnections=1000&amp;wireFormat.maxFrameSize=104857600"/>
+        <transportConnector name="ws" uri="ws://0.0.0.0:61614?maximumConnections=1000&amp;wireFormat.maxFrameSize=104857600"/>
+</transportConnectors>
+
+ActiveMQ推荐的可持久化存储(消息物理存储)： 投递消息需设置为持久化
+1)the Replicated LevelDB Store(带复制的LevelDB,基于文件本地的数据库,集群)
+2)KahaDB(默认的存储机制,基于文件本地的数据库,使用B-Tree索引)
+  消息存储使用事务日志和索引文件
+3)JDBC(长时间的存储,可靠性高, ActiveMQ Journal高速缓存写入将技术,提高写性能)
